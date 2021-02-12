@@ -1,0 +1,39 @@
+Code the User Registration(PHP Program)
+It is finally time to implement the registration functionality. 
+The main function of this code is to check if the supplied email is already registered.
+If it is not, we enter the username, email, and password into the database.
+
+Place the following code at the top of register.php.
+
+<?php
+    session_start();
+    include('config.php');
+    if (isset($_POST['register'])) {
+        $email = $_POST['email'];
+        $firstname = $_POST['firstname'];
+        $lastname = $_POST['lastname'];
+        $password = $_POST['password'];
+        $dob = $_POST['dob'];
+        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+        $query = $connection->prepare("SELECT * FROM users WHERE email=:email");
+        $query->bindParam("email", $email, PDO::PARAM_STR);
+        $query->execute();
+        if ($query->rowCount() > 0) {
+            echo '<p class="error">The email address is already registered!</p>';
+        }
+        if ($query->rowCount() == 0) {
+            $query = $connection->prepare("INSERT INTO users(email,firstname,lastname,password,dob) VALUES (:email,:firstname,:lastname,:password_hash,:dob)");
+            $query->bindParam("email", $email, PDO::PARAM_STR);
+            $query->bindParam("firstname", $firstname, PDO::PARAM_STR);
+            $query->bindParam("lastname", $lastname, PDO::PARAM_STR);
+            $query->bindParam("password_hash", $password_hash, PDO::PARAM_STR);
+            $query->bindParam("dob", $dob, PDO::PARAM_STR);
+            $result = $query->execute();
+            if ($result) {
+                echo '<p class="success">Your registration was successful!</p>';
+            } else {
+                echo '<p class="error">Something went wrong!</p>';
+            }
+        }
+    }
+?>
